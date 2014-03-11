@@ -11,7 +11,7 @@ module.exports = ( grunt ) ->
                                        'src/relational_index.coffee',
                                        'src/model.coffee' ]
         options:
-          bare: true
+          bare: false
 
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.registerTask "default", ["coffee"]
