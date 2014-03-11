@@ -6,12 +6,12 @@ module.exports = ( grunt ) ->
 
     coffee:
       default:
-        files:
-          'dist/<%= pkg.name %>.js': [ 'src/angular_orm.coffee',
-                                       'src/relational_index.coffee',
-                                       'src/model.coffee' ]
         options:
           bare: true
+        files:
+          'dist/<%= pkg.name %>.js': [ 'src/angular_orm.coffee'
+                                       'src/relational_index.coffee'
+                                       'src/model.coffee' ]
 
-  grunt.loadNpmTasks('grunt-contrib-coffee')
-  grunt.registerTask "default", ["coffee"]
+  grunt.loadNpmTasks 'grunt-contrib-coffee'
+  grunt.registerTask 'default', ['coffee']
