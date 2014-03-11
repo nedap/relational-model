@@ -1,6 +1,6 @@
 
-module = angular.module 'angular-orm',
-module.factory 'Model', [ 'RelationalIndex', ( RelationalIndex ) ->
+angular.module 'angular-orm'
+.factory 'Model', [ 'RelationalIndex', ( RelationalIndex ) ->
 
   class Model
     @CREATED: 'created'

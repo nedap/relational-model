@@ -1,6 +1,6 @@
 
-module = angular.module 'angular-orm'
-module.factory 'RelationalIndex', ( $q ) ->
+angular.module 'angular-orm'
+.factory 'RelationalIndex', ( $q ) ->
 
   class RelationalIndex
     @MANY: 'many'

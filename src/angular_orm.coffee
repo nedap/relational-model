@@ -1,3 +1,2 @@
-
 # create module
-module = angular.module 'angular-orm', []
+angular.module 'angular-orm', []
