@@ -3,7 +3,7 @@ angular.module('angular-orm', []);
 var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __slice = [].slice;
 
-angular.module('angular-orm').factory('RelationalIndex', function($q) {
+angular.module('angular-orm').factory('RelationalIndex', function() {
   var RelationalIndex;
   return RelationalIndex = (function() {
     RelationalIndex.MANY = 'many';
