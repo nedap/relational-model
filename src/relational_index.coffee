@@ -1,6 +1,6 @@
 
 angular.module 'angular-orm'
-.factory 'RelationalIndex', ( $q ) ->
+.factory 'RelationalIndex', ->
 
   class RelationalIndex
     @MANY: 'many'

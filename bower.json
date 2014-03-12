@@ -1,5 +1,9 @@
 {
   "name": "angular-orm",
   "version": "0.1.3",
-  "main": "dist/angular-orm.js"
+  "main": "dist/angular-orm.js",
+  "dependencies": {
+    "sugar": "https://github.com/andrewplummer/Sugar.git",
+    "underscore": "https://github.com/jashkenas/underscore.git"
+  }
 }
