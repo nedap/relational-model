@@ -5,7 +5,7 @@ class RelationalIndex
 
   constructor: ( data ) ->
     if data
-      @relations = Object.clone data, true
+      @relations = _.clone data, true
     else
       @relations = {}
 
@@ -22,7 +22,7 @@ class RelationalIndex
     @relations[ modelName ]
 
   find: ( options ) =>
-    @relations[ Object.find @relations, options ]
+    @all( options )[ 0 ]
 
   all: ( options ) =>
     return _.values @relations unless options

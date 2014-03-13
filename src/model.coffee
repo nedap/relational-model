@@ -66,7 +66,7 @@ class Model
     @relationalIndex.add property, modelName, RelationalIndex.ONE, key, keyInSelf
 
   @belongsTo: ( property, modelName, options={} ) ->
-    options = Object.clone options
+    options = _.clone options
     options.keyInSelf = true unless options.keyInSelf == false
     @hasOne property, modelName, options
 
