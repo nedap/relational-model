@@ -3,9 +3,6 @@
 describe 'Model', ->
 
   beforeEach ->
-    @Model = @factory 'Model'
-    @RelationalIndex = @factory 'RelationalIndex'
-
     @id = 'abc123'
 
     @fakeEventStream = {}
@@ -13,7 +10,7 @@ describe 'Model', ->
     @fakeEventStream.onValue = ->
     @fakeEventStream.filter = => @fakeEventStream
 
-    class @SubClass extends @Model
+    class @SubClass extends Model
       @initialize()
       constructor: ( data, stream ) ->
         super SubClass, data, stream
@@ -68,13 +65,16 @@ describe 'Model', ->
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
       obj = new @SubClass( @data, @fakeEventStream )
-      expect( obj.pushEvent ).toHaveBeenCalledWith @Model.CREATED
+      expect( obj.pushEvent ).toHaveBeenCalledWith Model.CREATED
 
     it "doesn't notify on creation without any relations", ->
+      class OtherClass extends Model
+        constructor: -> super
+
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
-      @Model.initialize()
-      obj = new @Model( @Model, @data, @fakeEventStream )
+      OtherClass.initialize()
+      obj = new OtherClass( OtherClass, @data, @fakeEventStream )
       expect( obj.pushEvent ).not.toHaveBeenCalled()
 
     it "updates", ->
@@ -83,7 +83,7 @@ describe 'Model', ->
 
     it "notifies on updates involving relations", ->
       @subject.update childID: '66'
-      expect( @subject.pushEvent ).toHaveBeenCalledWith @Model.UPDATED
+      expect( @subject.pushEvent ).toHaveBeenCalledWith Model.UPDATED
 
     it "doesn't notify on updates not involving relations", ->
       @subject.update someProperty: 'something else'
@@ -100,7 +100,7 @@ describe 'Model', ->
       spyOn @SubClass.relationalIndex, 'add'
 
     it "is created on a class-level", ->
-      class Organism extends @Model
+      class Organism extends Model
         @initialize()
 
       class Amoeba extends Organism
@@ -110,7 +110,7 @@ describe 'Model', ->
       expect( Organism.relationalIndex.relations ).not.toEqual Amoeba.relationalIndex.relations
 
     it "is cloned from the super-class", ->
-      class Organism extends @Model
+      class Organism extends Model
         @initialize()
         @hasMany 'children', 'Child'
 
@@ -128,7 +128,7 @@ describe 'Model', ->
       key       = 'some_id'
 
       @SubClass.hasMany property, modelName, key: key, keyInSelf: true
-      expect( @SubClass.relationalIndex.add ).toHaveBeenCalledWith property, modelName, @RelationalIndex.MANY, key, false # keyInSelf needs to be false for one-to-many relations
+      expect( @SubClass.relationalIndex.add ).toHaveBeenCalledWith property, modelName, RelationalIndex.MANY, key, false # keyInSelf needs to be false for one-to-many relations
 
     it "is invoked for has-one relations", ->
       property  = 'child'
@@ -137,7 +137,7 @@ describe 'Model', ->
       keyInSelf = false
 
       @SubClass.hasOne property, modelName, key: key, keyInSelf: keyInSelf
-      expect( @SubClass.relationalIndex.add ).toHaveBeenCalledWith property, modelName, @RelationalIndex.ONE, key, keyInSelf
+      expect( @SubClass.relationalIndex.add ).toHaveBeenCalledWith property, modelName, RelationalIndex.ONE, key, keyInSelf
 
     it "is invoked for belongs-to relations", ->
       property  = 'child'
@@ -146,13 +146,13 @@ describe 'Model', ->
       keyInSelf = true
 
       @SubClass.belongsTo property, modelName, key: key, keyInSelf: keyInSelf
-      expect( @SubClass.relationalIndex.add ).toHaveBeenCalledWith property, modelName, @RelationalIndex.ONE, key, keyInSelf
+      expect( @SubClass.relationalIndex.add ).toHaveBeenCalledWith property, modelName, RelationalIndex.ONE, key, keyInSelf
 
     it "isn't invoked before relations are made", ->
       expect( @SubClass.relationalIndex.add ).not.toHaveBeenCalled()
 
     it "throws an error when uninitialized", ->
-      class UninitializedClass extends @Model
+      class UninitializedClass extends Model
       expect( -> UninitializedClass.hasMany 'children', 'Child' ).toThrow()
       expect( -> UninitializedClass.hasOne     'child', 'Child' ).toThrow()
       expect( -> UninitializedClass.belongsTo  'child', 'Child' ).toThrow()
@@ -177,10 +177,10 @@ describe 'Model', ->
       modelName = 'Child'
       property = 'children'
 
-      spyOn( @SubClass.relationalIndex, 'get' ).and.returnValue { model: modelName, property: property, type: @RelationalIndex.MANY }
+      spyOn( @SubClass.relationalIndex, 'get' ).and.returnValue { model: modelName, property: property, type: RelationalIndex.MANY }
       @subject.storeAssociatedModel model: modelName, object: @relatedModel
 
-      expect( @SubClass.setAssociatedModel ).toHaveBeenCalledWith @subject, property, @relatedModel, @RelationalIndex.MANY
+      expect( @SubClass.setAssociatedModel ).toHaveBeenCalledWith @subject, property, @relatedModel, RelationalIndex.MANY
 
     it "attempts to retrieve inverse relations", ->
       modelName = 'Child'
@@ -199,10 +199,10 @@ describe 'Model', ->
       property = 'otherModel'
 
       spyOn( @SubClass.relationalIndex, 'get' ).and.returnValue { key: key, keyInSelf: false }
-      spyOn( @relatedModel.staticSelf.relationalIndex, 'find' ).and.returnValue { property: property, type: @RelationalIndex.ONE }
+      spyOn( @relatedModel.staticSelf.relationalIndex, 'find' ).and.returnValue { property: property, type: RelationalIndex.ONE }
       @subject.storeAssociatedModel model: modelName, object: @relatedModel
 
-      expect( @SubClass.setAssociatedModel ).toHaveBeenCalledWith @relatedModel, property, @subject, @RelationalIndex.ONE
+      expect( @SubClass.setAssociatedModel ).toHaveBeenCalledWith @relatedModel, property, @subject, RelationalIndex.ONE
 
 
 
@@ -213,7 +213,7 @@ describe 'Model', ->
       obj = {}
       obj[property] = 'something else'
 
-      @Model.setAssociatedModel obj, property, value, @RelationalIndex.ONE
+      Model.setAssociatedModel obj, property, value, RelationalIndex.ONE
       expect( obj[property] ).toEqual value
 
     it "sets properties for one-to-many relations", ->
@@ -222,12 +222,12 @@ describe 'Model', ->
       value2 = { id: 99, value: 'two' }
       obj = {}
 
-      @Model.setAssociatedModel obj, property, value1, @RelationalIndex.MANY
+      Model.setAssociatedModel obj, property, value1, RelationalIndex.MANY
       expect( obj[property] ).toBeDefined()
       expect( obj[property][value1.id] ).toEqual value1
 
       obj[property][value2.id] = { id: value2.id, value: 'pre-existing value' }
-      @Model.setAssociatedModel obj, property, value2, @RelationalIndex.MANY
+      Model.setAssociatedModel obj, property, value2, RelationalIndex.MANY
       expect( obj[property][value2.id] ).toEqual value2
 
     it "throws an error for unknown relation-types", ->

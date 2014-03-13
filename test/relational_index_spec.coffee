@@ -3,21 +3,20 @@
 describe 'RelationalIndex', ->
 
   beforeEach ->
-    @RelationalIndex = @factory 'RelationalIndex'
-    @subject = new @RelationalIndex
+    @subject = new RelationalIndex
 
     @modelName = 'SomeModel'
     @property  = 'myProperty'
     @key       = 'otherModelID'
     @keyInSelf = true
-    @type      = @RelationalIndex.ONE
+    @type      = RelationalIndex.ONE
 
     @storedObject = { property: @property, model: @modelName, type: @type, key: @key, keyInSelf: @keyInSelf }
 
   it "has relations", ->
     relations = {}
     relations[ @modelName ] = {}
-    @subject = new @RelationalIndex( relations )
+    @subject = new RelationalIndex( relations )
     expect( @subject.has @modelName ).toEqual true
 
   it "adds relations", ->
@@ -34,8 +33,8 @@ describe 'RelationalIndex', ->
 
     expect( @subject.all() ).toEqual []
 
-    one   = { property: 'one',   model: 'A', type: @RelationalIndex.ONE,  key: 'one_id',   keyInSelf: false }
-    two   = { property: 'one',   model: 'B', type: @RelationalIndex.MANY, key: 'two_id',   keyInSelf: true }
+    one   = { property: 'one',   model: 'A', type: RelationalIndex.ONE,  key: 'one_id',   keyInSelf: false }
+    two   = { property: 'one',   model: 'B', type: RelationalIndex.MANY, key: 'two_id',   keyInSelf: true }
     @subject.add one.property,   one.model,   one.type,   one.key,   one.keyInSelf
     @subject.add two.property,   two.model,   two.type,   two.key,   two.keyInSelf
 
@@ -53,9 +52,9 @@ describe 'RelationalIndex', ->
   it "finds all relations", ->
     expect( @subject.all() ).toEqual []
 
-    one   = { property: 'one',   model: 'A', type: @RelationalIndex.ONE,  key: 'one_id',   keyInSelf: false }
-    two   = { property: 'two',   model: 'B', type: @RelationalIndex.MANY, key: 'two_id',   keyInSelf: true }
-    three = { property: 'three', model: 'C', type: @RelationalIndex.ONE,  key: 'three_id', keyInSelf: true }
+    one   = { property: 'one',   model: 'A', type: RelationalIndex.ONE,  key: 'one_id',   keyInSelf: false }
+    two   = { property: 'two',   model: 'B', type: RelationalIndex.MANY, key: 'two_id',   keyInSelf: true }
+    three = { property: 'three', model: 'C', type: RelationalIndex.ONE,  key: 'three_id', keyInSelf: true }
 
     @subject.add one.property,   one.model,   one.type,   one.key,   one.keyInSelf
     @subject.add two.property,   two.model,   two.type,   two.key,   two.keyInSelf
@@ -66,8 +65,8 @@ describe 'RelationalIndex', ->
     expect( @subject.all property: 'three' ).toEqual [ three ]
 
     expect( @subject.all keyInSelf: true ).toEqual [ two, three ]
-    expect( @subject.all type: @RelationalIndex.ONE ).toEqual [ one, three ]
-    expect( @subject.all type: @RelationalIndex.ONE, keyInSelf: true ).toEqual [ three ]
+    expect( @subject.all type: RelationalIndex.ONE ).toEqual [ one, three ]
+    expect( @subject.all type: RelationalIndex.ONE, keyInSelf: true ).toEqual [ three ]
 
   it "clones", ->
     @subject.add @property, @modelName, @type, @key, @keyInSelf

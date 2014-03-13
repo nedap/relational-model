@@ -10,7 +10,7 @@ module.exports = ( grunt ) ->
         options:
           bare: true
         files:
-          'dist/<%= pkg.name %>.js': [ 'src/angular_orm.coffee', 'src/relational_index.coffee', 'src/model.coffee' ]
+          'dist/<%= pkg.name %>.js': [ 'src/relational_index.coffee', 'src/model.coffee' ]
       test:
         expand: true
         src: [ 'src/**/*.coffee', 'test/**/*.coffee' ]
