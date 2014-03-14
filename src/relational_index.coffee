@@ -4,38 +4,49 @@ class RelationalIndex
   @ONE:  'one'
 
   constructor: ( data ) ->
-    if data
-      @relations = _.clone data, true
-    else
-      @relations = {}
+    @relations = {}
+    @relations[model] = rel.slice() for model, rel of data if data
 
   clone: =>
     new RelationalIndex @relations
 
   add: ( property, modelName, type, key, keyInSelf=false ) =>
-    @relations[ modelName ] = { model: modelName, property: property, type: type, key: key, keyInSelf: keyInSelf }
+    @relations[modelName] ||= []
+    @relations[modelName].push { model: modelName, property: property, type: type, key: key, keyInSelf: keyInSelf }
 
-  has: ( modelName ) =>
-    @relations[ modelName ]?
-
-  get: ( modelName ) =>
-    @relations[ modelName ]
+  has: ( options ) =>
+    throw new Error "Missing argument" unless options
+    if typeof options == 'string'
+      return @relations[options]?.length > 0
+    for model, rels of @relations
+      for relation in rels
+        return true if RelationalIndex.matches relation, options
+    return false
 
   find: ( options ) =>
-    @all( options )[ 0 ]
-
-  all: ( options ) =>
-    return _.values @relations unless options
-
+    return @all() unless options
+    if typeof options == 'string'
+      return @relations[ options ] || []
     values = []
-    keys = _.keys options
+    for model, rels of @relations
+      for relation in rels
+        values.push relation if RelationalIndex.matches relation, options
+    return values
 
-    for model, relation of @relations
-      subset  = _.pick relation, keys...
-      matches = _.isEqual subset, options
-      values.push relation if matches
-
+  all: =>
+    values = []
+    values.push rels... for model, rels of @relations
     return values
 
   isEmpty: =>
     !_.keys( @relations ).length
+
+  @matches: ( relation, criteria ) =>
+    criteriaEmpty = true
+    for key, value of criteria
+      criteriaEmpty = false
+      return false unless relation[key] == value
+    return true unless criteriaEmpty
+    for key, value of relation
+      return false
+    return true

@@ -12,18 +12,21 @@ class Model
       @pushEvent Model.CREATED unless @staticSelf.relationalIndex.isEmpty()
 
   filterModelStream: ( data ) =>
-    return false unless relation = @staticSelf.relationalIndex.get data.model
-    if relation.keyInSelf
-      return data.object.id == @[relation.key]
-    else
-      return data.object[ relation.key ] == @id
+    for relation in @staticSelf.relationalIndex.find data.model
+      if relation.keyInSelf
+        return true if data.object.id == @[relation.key]
+      else
+        return true if data.object[ relation.key ] == @id
+    return false
 
   storeAssociatedModel: ( data ) =>
-    return unless relation = @staticSelf.relationalIndex.get data.model
-    @staticSelf.setAssociatedModel this, relation.property, data.object, relation.type
+    relations = @staticSelf.relationalIndex.find data.model
+    return unless relations.length
+    @staticSelf.setAssociatedModel this, relation.property, data.object, relation.type for relation in relations
 
-    return unless inverse = data.object.staticSelf.relationalIndex.find model: @staticSelf.name, key: relation.key, keyInSelf: !relation.keyInSelf
-    @staticSelf.setAssociatedModel data.object, inverse.property, this, inverse.type
+    inverse = data.object.staticSelf.relationalIndex.find model: @staticSelf.name, key: relation.key, keyInSelf: !relation.keyInSelf
+    return unless inverse.length
+    @staticSelf.setAssociatedModel data.object, relation.property, this, relation.type for relation in inverse
 
   update: ( data, silent=false ) =>
     changed = @hasRelationalChanges data
@@ -35,8 +38,7 @@ class Model
     for property, value of data
       changed = @[property] != value
       continue unless changed
-      hasRelation = @staticSelf.relationalIndex.find( key: property, keyInSelf: true )?
-      return true if hasRelation
+      return true if @staticSelf.relationalIndex.has key: property, keyInSelf: true
     return false
 
   pushEvent: ( type ) =>

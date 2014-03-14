@@ -5,75 +5,70 @@ describe 'RelationalIndex', ->
   beforeEach ->
     @subject = new RelationalIndex
 
-    @modelName = 'SomeModel'
-    @property  = 'myProperty'
-    @key       = 'otherModelID'
-    @keyInSelf = true
-    @type      = RelationalIndex.ONE
+    @rel1 = { property: 'one', model: 'A', type: RelationalIndex.ONE,  key: 'one_id', keyInSelf: false }
+    @rel2 = { property: 'two', model: 'B', type: RelationalIndex.MANY, key: 'two_id', keyInSelf: true }
 
-    @storedObject = { property: @property, model: @modelName, type: @type, key: @key, keyInSelf: @keyInSelf }
+    @add = ( rel ) -> @subject.add rel.property, rel.model, rel.type, rel.key, rel.keyInSelf
 
   it "has relations", ->
     relations = {}
-    relations[ @modelName ] = {}
+    relations[ @rel1.model ] = [ @rel1 ]
     @subject = new RelationalIndex( relations )
-    expect( @subject.has @modelName ).toEqual true
+
+    expect( @subject.has @rel1.model ).toEqual true
+    expect( @subject.has property: @rel1.property ).toEqual true
+    expect( @subject.has 'non-existent' ).toEqual false
+    expect( @subject.has property: 'nothing' ).toEqual false
 
   it "adds relations", ->
-    expect( @subject.has @modelName ).toEqual false
-    @subject.add @property, @modelName, @type, @key, @keyInSelf
-    expect( @subject.has @modelName ).toEqual true
+    expect( @subject.has @rel1.model ).toEqual false
+    @add( @rel1 )
+    expect( @subject.has @rel1.model ).toEqual true
 
-  it "gets relations", ->
-    expect( @subject.get @modelName ).toBeUndefined()
-    @subject.add @property, @modelName, @type, @key, @keyInSelf
-    expect( @subject.get @modelName ).toEqual jasmine.objectContaining @storedObject
+  it "finds relations by model-name", ->
+    expect( @subject.find @rel1.model ).toEqual []
+    @add( @rel1 )
+    expect( @subject.find @rel1.model ).toEqual [ jasmine.objectContaining( @rel1 ) ]
+
+    @rel2.model = @rel1.model
+    @add( @rel2 )
+    expect( @subject.find @rel1.model ).toEqual [ jasmine.objectContaining( @rel1 ), jasmine.objectContaining( @rel2 )]
+
+  it "finds relations by properties", ->
+    expect( @subject.find property: @rel1.property, type: @rel1.type ).toEqual []
+    @add( @rel1 )
+    expect( @subject.find property: @rel1.property, type: @rel1.type ).toEqual [ jasmine.objectContaining @rel1 ]
+    @add( @rel2 )
+    expect( @subject.find property: @rel1.property, type: @rel1.type ).toEqual [ jasmine.objectContaining @rel1 ]
 
   it "gets all relations", ->
-
     expect( @subject.all() ).toEqual []
-
-    one   = { property: 'one',   model: 'A', type: RelationalIndex.ONE,  key: 'one_id',   keyInSelf: false }
-    two   = { property: 'one',   model: 'B', type: RelationalIndex.MANY, key: 'two_id',   keyInSelf: true }
-    @subject.add one.property,   one.model,   one.type,   one.key,   one.keyInSelf
-    @subject.add two.property,   two.model,   two.type,   two.key,   two.keyInSelf
-
-    # TODO: NEEDS =~
-    all = @subject.all()
-    expect( all.length ).toEqual 2
-    expect( all ).toContain one
-    expect( all ).toContain two
-
-  it "finds relations", ->
-    expect( @subject.find model: @modelName ).toBeUndefined()
-    @subject.add @property, @modelName, @type, @key, @keyInSelf
-    expect( @subject.find model: @modelName ).toEqual jasmine.objectContaining @storedObject
-
-  it "finds all relations", ->
-    expect( @subject.all() ).toEqual []
-
-    one   = { property: 'one',   model: 'A', type: RelationalIndex.ONE,  key: 'one_id',   keyInSelf: false }
-    two   = { property: 'two',   model: 'B', type: RelationalIndex.MANY, key: 'two_id',   keyInSelf: true }
-    three = { property: 'three', model: 'C', type: RelationalIndex.ONE,  key: 'three_id', keyInSelf: true }
-
-    @subject.add one.property,   one.model,   one.type,   one.key,   one.keyInSelf
-    @subject.add two.property,   two.model,   two.type,   two.key,   two.keyInSelf
-    @subject.add three.property, three.model, three.type, three.key, three.keyInSelf
-
-    expect( @subject.all property: 'one'   ).toEqual [ one ]
-    expect( @subject.all property: 'two'   ).toEqual [ two ]
-    expect( @subject.all property: 'three' ).toEqual [ three ]
-
-    expect( @subject.all keyInSelf: true ).toEqual [ two, three ]
-    expect( @subject.all type: RelationalIndex.ONE ).toEqual [ one, three ]
-    expect( @subject.all type: RelationalIndex.ONE, keyInSelf: true ).toEqual [ three ]
+    @add( @rel1 )
+    @add( @rel2 )
+    expect( @subject.all() ).toEqual [ jasmine.objectContaining( @rel1 ), jasmine.objectContaining( @rel2 )]
 
   it "clones", ->
-    @subject.add @property, @modelName, @type, @key, @keyInSelf
+    @add( @rel1 )
     clone = @subject.clone()
-    clone.has @modelName
+    expect( clone.has @rel1.model ).toEqual true
 
   it "knows when its empty", ->
     expect( @subject.isEmpty() ).toEqual true
     @subject.add @property, @modelName, @type, @key, @keyInSelf
     expect( @subject.isEmpty() ).toEqual false
+
+  it "recognizes partial matches", ->
+    obj = { a: 'aye', b: 'bee', one: 1 }
+    one1 = { one: 1 }
+    one2 = { one: 2 }
+    aAyeBBee = { a: 'aye', b: 'bee' }
+    aCeeBDee = { a: 'cee', b: 'dee' }
+    empty = {}
+
+    expect( RelationalIndex.matches obj, obj ).toEqual true
+    expect( RelationalIndex.matches obj, one1 ).toEqual true
+    expect( RelationalIndex.matches obj, one2 ).toEqual false
+    expect( RelationalIndex.matches obj, aAyeBBee ).toEqual true
+    expect( RelationalIndex.matches obj, aCeeBDee ).toEqual false
+    expect( RelationalIndex.matches obj, empty ).toEqual false
+    expect( RelationalIndex.matches empty, obj ).toEqual false

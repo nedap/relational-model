@@ -162,22 +162,22 @@ describe 'Model', ->
   describe "its storeAssociatedModel() method", ->
     beforeEach ->
       spyOn @SubClass, 'setAssociatedModel'
-      @relatedModel = { id: '33', staticSelf: { relationalIndex: { find: -> }}}
+      @relatedModel = { id: '33', staticSelf: { relationalIndex: { find: -> []}}}
 
     it "attempts to retrieve relations", ->
       modelName = 'Child'
 
-      spyOn( @SubClass.relationalIndex, 'get' ).and.returnValue null
+      spyOn( @SubClass.relationalIndex, 'find' ).and.returnValue []
       @subject.storeAssociatedModel model: modelName, id: @relatedModel.id, object: @relatedModel
 
-      expect( @SubClass.relationalIndex.get ).toHaveBeenCalledWith modelName
+      expect( @SubClass.relationalIndex.find ).toHaveBeenCalledWith modelName
       expect( @SubClass.setAssociatedModel ).not.toHaveBeenCalled() # .relationalIndex.get() was stubbed to return nothing, so setAssociatedModel shouldn't be called
 
     it "calls setAssociatedModel() for relations", ->
       modelName = 'Child'
       property = 'children'
 
-      spyOn( @SubClass.relationalIndex, 'get' ).and.returnValue { model: modelName, property: property, type: RelationalIndex.MANY }
+      spyOn( @SubClass.relationalIndex, 'find' ).and.returnValue [{ model: modelName, property: property, type: RelationalIndex.MANY }]
       @subject.storeAssociatedModel model: modelName, object: @relatedModel
 
       expect( @SubClass.setAssociatedModel ).toHaveBeenCalledWith @subject, property, @relatedModel, RelationalIndex.MANY
@@ -186,8 +186,8 @@ describe 'Model', ->
       modelName = 'Child'
       key = 'otherModelID'
 
-      spyOn( @SubClass.relationalIndex, 'get' ).and.returnValue { key: key, keyInSelf: false }
-      spyOn( @relatedModel.staticSelf.relationalIndex, 'find' ).and.returnValue null
+      spyOn( @SubClass.relationalIndex, 'find' ).and.returnValue [{ key: key, keyInSelf: false }]
+      spyOn( @relatedModel.staticSelf.relationalIndex, 'find' ).and.returnValue []
       @subject.storeAssociatedModel model: modelName, object: @relatedModel
 
       expect( @relatedModel.staticSelf.relationalIndex.find ).toHaveBeenCalledWith { model: @SubClass.name, key: key, keyInSelf: true }
@@ -198,8 +198,8 @@ describe 'Model', ->
       key = 'otherModelID'
       property = 'otherModel'
 
-      spyOn( @SubClass.relationalIndex, 'get' ).and.returnValue { key: key, keyInSelf: false }
-      spyOn( @relatedModel.staticSelf.relationalIndex, 'find' ).and.returnValue { property: property, type: RelationalIndex.ONE }
+      spyOn( @SubClass.relationalIndex, 'find' ).and.returnValue [{ key: key, keyInSelf: false }]
+      spyOn( @relatedModel.staticSelf.relationalIndex, 'find' ).and.returnValue [{ property: property, type: RelationalIndex.ONE }]
       @subject.storeAssociatedModel model: modelName, object: @relatedModel
 
       expect( @SubClass.setAssociatedModel ).toHaveBeenCalledWith @relatedModel, property, @subject, RelationalIndex.ONE
