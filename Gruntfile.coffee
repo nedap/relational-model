@@ -31,10 +31,19 @@ module.exports = ( grunt ) ->
     bower:
       install: {}
 
+    bump:
+      options:
+        files: [ 'package.json', 'bower.json' ]
+        commitFiles: [ 'package.json', 'bower.json' ]
+        tagName: '%VERSION%'
+
+
+
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-jasmine'
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-bower-task'
+  grunt.loadNpmTasks 'grunt-bump'
 
   grunt.registerTask 'build',   [ 'coffee' ]
   grunt.registerTask 'test',    [ 'coffee:test', 'jasmine', 'clean' ]
