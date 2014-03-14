@@ -1,6 +1,5 @@
 var RelationalIndex,
-  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-  __slice = [].slice;
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 RelationalIndex = (function() {
   RelationalIndex.MANY = 'many';
@@ -11,14 +10,16 @@ RelationalIndex = (function() {
     this.isEmpty = __bind(this.isEmpty, this);
     this.all = __bind(this.all, this);
     this.find = __bind(this.find, this);
-    this.get = __bind(this.get, this);
     this.has = __bind(this.has, this);
     this.add = __bind(this.add, this);
     this.clone = __bind(this.clone, this);
+    var model, rel;
+    this.relations = {};
     if (data) {
-      this.relations = Object.clone(data, true);
-    } else {
-      this.relations = {};
+      for (model in data) {
+        rel = data[model];
+        this.relations[model] = rel.slice();
+      }
     }
   }
 
@@ -27,51 +28,100 @@ RelationalIndex = (function() {
   };
 
   RelationalIndex.prototype.add = function(property, modelName, type, key, keyInSelf) {
+    var _base;
     if (keyInSelf == null) {
       keyInSelf = false;
     }
-    return this.relations[modelName] = {
+    (_base = this.relations)[modelName] || (_base[modelName] = []);
+    return this.relations[modelName].push({
       model: modelName,
       property: property,
       type: type,
       key: key,
       keyInSelf: keyInSelf
-    };
+    });
   };
 
-  RelationalIndex.prototype.has = function(modelName) {
-    return this.relations[modelName] != null;
-  };
-
-  RelationalIndex.prototype.get = function(modelName) {
-    return this.relations[modelName];
+  RelationalIndex.prototype.has = function(options) {
+    var model, relation, rels, _i, _len, _ref, _ref1;
+    if (!options) {
+      throw new Error("Missing argument");
+    }
+    if (typeof options === 'string') {
+      return ((_ref = this.relations[options]) != null ? _ref.length : void 0) > 0;
+    }
+    _ref1 = this.relations;
+    for (model in _ref1) {
+      rels = _ref1[model];
+      for (_i = 0, _len = rels.length; _i < _len; _i++) {
+        relation = rels[_i];
+        if (RelationalIndex.matches(relation, options)) {
+          return true;
+        }
+      }
+    }
+    return false;
   };
 
   RelationalIndex.prototype.find = function(options) {
-    return this.relations[Object.find(this.relations, options)];
-  };
-
-  RelationalIndex.prototype.all = function(options) {
-    var keys, matches, model, relation, subset, values, _ref;
+    var model, relation, rels, values, _i, _len, _ref;
     if (!options) {
-      return _.values(this.relations);
+      return this.all();
+    }
+    if (typeof options === 'string') {
+      return this.relations[options] || [];
     }
     values = [];
-    keys = _.keys(options);
     _ref = this.relations;
     for (model in _ref) {
-      relation = _ref[model];
-      subset = _.pick.apply(_, [relation].concat(__slice.call(keys)));
-      matches = _.isEqual(subset, options);
-      if (matches) {
-        values.push(relation);
+      rels = _ref[model];
+      for (_i = 0, _len = rels.length; _i < _len; _i++) {
+        relation = rels[_i];
+        if (RelationalIndex.matches(relation, options)) {
+          values.push(relation);
+        }
       }
     }
     return values;
   };
 
+  RelationalIndex.prototype.all = function() {
+    var model, rels, values, _ref;
+    values = [];
+    _ref = this.relations;
+    for (model in _ref) {
+      rels = _ref[model];
+      values.push.apply(values, rels);
+    }
+    return values;
+  };
+
   RelationalIndex.prototype.isEmpty = function() {
-    return !_.keys(this.relations).length;
+    var model;
+    for (model in this.relations) {
+      return false;
+    }
+    return true;
+  };
+
+  RelationalIndex.matches = function(relation, criteria) {
+    var criteriaEmpty, key, value;
+    criteriaEmpty = true;
+    for (key in criteria) {
+      value = criteria[key];
+      criteriaEmpty = false;
+      if (relation[key] !== value) {
+        return false;
+      }
+    }
+    if (!criteriaEmpty) {
+      return true;
+    }
+    for (key in relation) {
+      value = relation[key];
+      return false;
+    }
+    return true;
   };
 
   return RelationalIndex;
@@ -105,31 +155,47 @@ Model = (function() {
   }
 
   Model.prototype.filterModelStream = function(data) {
-    var relation;
-    if (!(relation = this.staticSelf.relationalIndex.get(data.model))) {
-      return false;
+    var relation, _i, _len, _ref;
+    _ref = this.staticSelf.relationalIndex.find(data.model);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      relation = _ref[_i];
+      if (relation.keyInSelf) {
+        if (data.object.id === this[relation.key]) {
+          return true;
+        }
+      } else {
+        if (data.object[relation.key] === this.id) {
+          return true;
+        }
+      }
     }
-    if (relation.keyInSelf) {
-      return data.object.id === this[relation.key];
-    } else {
-      return data.object[relation.key] === this.id;
-    }
+    return false;
   };
 
   Model.prototype.storeAssociatedModel = function(data) {
-    var inverse, relation;
-    if (!(relation = this.staticSelf.relationalIndex.get(data.model))) {
+    var inverse, relation, relations, _i, _j, _len, _len1, _results;
+    relations = this.staticSelf.relationalIndex.find(data.model);
+    if (!relations.length) {
       return;
     }
-    this.staticSelf.setAssociatedModel(this, relation.property, data.object, relation.type);
-    if (!(inverse = data.object.staticSelf.relationalIndex.find({
+    for (_i = 0, _len = relations.length; _i < _len; _i++) {
+      relation = relations[_i];
+      this.staticSelf.setAssociatedModel(this, relation.property, data.object, relation.type);
+    }
+    inverse = data.object.staticSelf.relationalIndex.find({
       model: this.staticSelf.name,
       key: relation.key,
       keyInSelf: !relation.keyInSelf
-    }))) {
+    });
+    if (!inverse.length) {
       return;
     }
-    return this.staticSelf.setAssociatedModel(data.object, inverse.property, this, inverse.type);
+    _results = [];
+    for (_j = 0, _len1 = inverse.length; _j < _len1; _j++) {
+      relation = inverse[_j];
+      _results.push(this.staticSelf.setAssociatedModel(data.object, relation.property, this, relation.type));
+    }
+    return _results;
   };
 
   Model.prototype.update = function(data, silent) {
@@ -148,18 +214,17 @@ Model = (function() {
   };
 
   Model.prototype.hasRelationalChanges = function(data) {
-    var changed, hasRelation, property, value;
+    var changed, property, value;
     for (property in data) {
       value = data[property];
       changed = this[property] !== value;
       if (!changed) {
         continue;
       }
-      hasRelation = this.staticSelf.relationalIndex.find({
+      if (this.staticSelf.relationalIndex.has({
         key: property,
         keyInSelf: true
-      }) != null;
-      if (hasRelation) {
+      })) {
         return true;
       }
     }
@@ -220,14 +285,19 @@ Model = (function() {
   };
 
   Model.belongsTo = function(property, modelName, options) {
+    var clonedOptions, key, value;
     if (options == null) {
       options = {};
     }
-    options = Object.clone(options);
-    if (options.keyInSelf !== false) {
-      options.keyInSelf = true;
+    clonedOptions = {};
+    for (key in options) {
+      value = options[key];
+      clonedOptions[key] = value;
     }
-    return this.hasOne(property, modelName, options);
+    if (options.keyInSelf !== false) {
+      clonedOptions.keyInSelf = true;
+    }
+    return this.hasOne(property, modelName, clonedOptions);
   };
 
   Model.setAssociatedModel = function(object, property, value, type) {
