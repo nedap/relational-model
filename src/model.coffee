@@ -68,9 +68,10 @@ class Model
     @relationalIndex.add property, modelName, RelationalIndex.ONE, key, keyInSelf
 
   @belongsTo: ( property, modelName, options={} ) ->
-    options = _.clone options
-    options.keyInSelf = true unless options.keyInSelf == false
-    @hasOne property, modelName, options
+    clonedOptions = {}
+    clonedOptions[key] = value for key, value of options
+    clonedOptions.keyInSelf = true unless options.keyInSelf == false
+    @hasOne property, modelName, clonedOptions
 
   @setAssociatedModel: ( object, property, value, type ) =>
     switch type

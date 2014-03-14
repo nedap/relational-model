@@ -9,8 +9,5 @@
     "type": "git",
     "url": "git://github.com/nedap/relational-model.git"
   },
-  "main": "dist/relational-model.js",
-  "dependencies": {
-    "underscore": "https://github.com/jashkenas/underscore.git"
-  }
+  "main": "dist/relational-model.js"
 }

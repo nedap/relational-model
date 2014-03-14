@@ -39,7 +39,8 @@ class RelationalIndex
     return values
 
   isEmpty: =>
-    !_.keys( @relations ).length
+    return false for model of @relations
+    return true
 
   @matches: ( relation, criteria ) =>
     criteriaEmpty = true
