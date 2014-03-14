@@ -36,7 +36,7 @@ module.exports = ( grunt ) ->
         files: [ 'package.json', 'bower.json' ]
         commitFiles: [ 'package.json', 'bower.json' ]
         tagName: '%VERSION%'
-
+        pushTo: 'origin'
 
 
   grunt.loadNpmTasks 'grunt-contrib-coffee'
@@ -45,6 +45,9 @@ module.exports = ( grunt ) ->
   grunt.loadNpmTasks 'grunt-bower-task'
   grunt.loadNpmTasks 'grunt-bump'
 
-  grunt.registerTask 'build',   [ 'coffee' ]
-  grunt.registerTask 'test',    [ 'coffee:test', 'jasmine', 'clean' ]
-  grunt.registerTask 'install', [ 'bower:install' ]
+  grunt.registerTask 'release',       [ 'coffee', 'bump' ]
+  grunt.registerTask 'release:major', [ 'coffee', 'bump:major' ]
+  grunt.registerTask 'release:minor', [ 'coffee', 'bump:minor' ]
+  grunt.registerTask 'release:patch', [ 'coffee', 'bump:patch' ]
+  grunt.registerTask 'test',          [ 'coffee:test', 'jasmine', 'clean' ]
+  grunt.registerTask 'install',       [ 'bower:install' ]
