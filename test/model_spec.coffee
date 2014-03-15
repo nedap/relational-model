@@ -13,7 +13,7 @@ describe 'Model', ->
     class @SubClass extends Model
       @initialize()
       constructor: ( data, stream ) ->
-        super SubClass, data, stream
+        super SubClass, stream, data
 
     @data = { id: @id, childID: '33', someProperty: 'what' }
     @subject = new @SubClass( @data, @fakeEventStream )
@@ -74,7 +74,7 @@ describe 'Model', ->
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
       OtherClass.initialize()
-      obj = new OtherClass( OtherClass, @data, @fakeEventStream )
+      obj = new OtherClass( OtherClass, @fakeEventStream, @data )
       expect( obj.pushEvent ).not.toHaveBeenCalled()
 
     it "updates", ->

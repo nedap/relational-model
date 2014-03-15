@@ -3,7 +3,7 @@ class Model
   @CREATED: 'created'
   @UPDATED: 'updated'
 
-  constructor: ( @staticSelf, data, @eventStream ) ->
+  constructor: ( @staticSelf, @eventStream, data ) ->
     @update data, true
 
     if @eventStream
