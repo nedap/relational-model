@@ -1,6 +1,6 @@
 #= require spec_helper
 
-describe 'Model', ->
+describe 'RelationalModel', ->
 
   beforeEach ->
     @id = 'abc123'
@@ -10,7 +10,7 @@ describe 'Model', ->
     @fakeEventStream.onValue = ->
     @fakeEventStream.filter = => @fakeEventStream
 
-    class @SubClass extends Model
+    class @SubClass extends RelationalModel
       @initialize()
       constructor: ( data, stream ) ->
         super SubClass, stream, data
@@ -22,7 +22,7 @@ describe 'Model', ->
 
   describe "its constructor parameters", ->
     beforeEach ->
-      class @SomeClass extends Model
+      class @SomeClass extends RelationalModel
         @initialize()
         constructor: ( eventStream, data ) ->
           super SomeClass, eventStream, data
@@ -78,10 +78,10 @@ describe 'Model', ->
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
       obj = new @SubClass( @data, @fakeEventStream )
-      expect( obj.pushEvent ).toHaveBeenCalledWith Model.CREATED
+      expect( obj.pushEvent ).toHaveBeenCalledWith RelationalModel.CREATED
 
     it "doesn't notify on creation without any relations", ->
-      class OtherClass extends Model
+      class OtherClass extends RelationalModel
         constructor: -> super
 
       @data.pushEvent = ( type ) ->
@@ -96,7 +96,7 @@ describe 'Model', ->
 
     it "notifies on updates involving relations", ->
       @subject.update childID: '66'
-      expect( @subject.pushEvent ).toHaveBeenCalledWith Model.UPDATED
+      expect( @subject.pushEvent ).toHaveBeenCalledWith RelationalModel.UPDATED
 
     it "doesn't notify on updates not involving relations", ->
       @subject.update someProperty: 'something else'
@@ -113,7 +113,7 @@ describe 'Model', ->
       spyOn @SubClass.relationalIndex, 'add'
 
     it "is created on a class-level", ->
-      class Organism extends Model
+      class Organism extends RelationalModel
         @initialize()
 
       class Amoeba extends Organism
@@ -123,7 +123,7 @@ describe 'Model', ->
       expect( Organism.relationalIndex.relations ).not.toEqual Amoeba.relationalIndex.relations
 
     it "is cloned from the super-class", ->
-      class Organism extends Model
+      class Organism extends RelationalModel
         @initialize()
         @hasMany 'children', 'Child'
 
@@ -165,7 +165,7 @@ describe 'Model', ->
       expect( @SubClass.relationalIndex.add ).not.toHaveBeenCalled()
 
     it "throws an error when uninitialized", ->
-      class UninitializedClass extends Model
+      class UninitializedClass extends RelationalModel
       expect( -> UninitializedClass.hasMany 'children', 'Child' ).toThrow()
       expect( -> UninitializedClass.hasOne     'child', 'Child' ).toThrow()
       expect( -> UninitializedClass.belongsTo  'child', 'Child' ).toThrow()
@@ -226,7 +226,7 @@ describe 'Model', ->
       obj = {}
       obj[property] = 'something else'
 
-      Model.setAssociatedModel obj, property, value, RelationalIndex.ONE
+      RelationalModel.setAssociatedModel obj, property, value, RelationalIndex.ONE
       expect( obj[property] ).toEqual value
 
     it "sets properties for one-to-many relations", ->
@@ -235,13 +235,13 @@ describe 'Model', ->
       value2 = { id: 99, value: 'two' }
       obj = {}
 
-      Model.setAssociatedModel obj, property, value1, RelationalIndex.MANY
+      RelationalModel.setAssociatedModel obj, property, value1, RelationalIndex.MANY
       expect( obj[property] ).toBeDefined()
       expect( obj[property][value1.id] ).toEqual value1
 
       obj[property][value2.id] = { id: value2.id, value: 'pre-existing value' }
-      Model.setAssociatedModel obj, property, value2, RelationalIndex.MANY
+      RelationalModel.setAssociatedModel obj, property, value2, RelationalIndex.MANY
       expect( obj[property][value2.id] ).toEqual value2
 
     it "throws an error for unknown relation-types", ->
-      expect( -> Model.setAssociatedModel {}, 'prop', 'value', 'bullshit' ).toThrow()
+      expect( -> RelationalModel.setAssociatedModel {}, 'prop', 'value', 'bullshit' ).toThrow()
