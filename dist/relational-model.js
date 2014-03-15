@@ -128,15 +128,15 @@ RelationalIndex = (function() {
 
 })();
 
-var Model,
+var RelationalModel,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-Model = (function() {
-  Model.CREATED = 'created';
+RelationalModel = (function() {
+  RelationalModel.CREATED = 'created';
 
-  Model.UPDATED = 'updated';
+  RelationalModel.UPDATED = 'updated';
 
-  function Model(staticSelf, data, eventStream) {
+  function RelationalModel(staticSelf, eventStream, data) {
     this.staticSelf = staticSelf;
     this.eventStream = eventStream;
     this.pushEvent = __bind(this.pushEvent, this);
@@ -144,17 +144,20 @@ Model = (function() {
     this.update = __bind(this.update, this);
     this.storeAssociatedModel = __bind(this.storeAssociatedModel, this);
     this.filterModelStream = __bind(this.filterModelStream, this);
-    this.update(data, true);
-    if (this.eventStream) {
-      this.associatedModelStream = this.eventStream.filter(this.filterModelStream);
-      this.associatedModelStream.onValue(this.storeAssociatedModel);
-      if (!this.staticSelf.relationalIndex.isEmpty()) {
-        this.pushEvent(Model.CREATED);
-      }
+    if (data) {
+      this.update(data, true);
+    }
+    if (!this.eventStream) {
+      throw new Error("eventStream missing");
+    }
+    this.associatedModelStream = this.eventStream.filter(this.filterModelStream);
+    this.associatedModelStream.onValue(this.storeAssociatedModel);
+    if (!this.staticSelf.relationalIndex.isEmpty()) {
+      this.pushEvent(RelationalModel.CREATED);
     }
   }
 
-  Model.prototype.filterModelStream = function(data) {
+  RelationalModel.prototype.filterModelStream = function(data) {
     var relation, _i, _len, _ref;
     _ref = this.staticSelf.relationalIndex.find(data.model);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -172,7 +175,7 @@ Model = (function() {
     return false;
   };
 
-  Model.prototype.storeAssociatedModel = function(data) {
+  RelationalModel.prototype.storeAssociatedModel = function(data) {
     var inverse, relation, relations, _i, _j, _len, _len1, _results;
     relations = this.staticSelf.relationalIndex.find(data.model);
     if (!relations.length) {
@@ -198,7 +201,7 @@ Model = (function() {
     return _results;
   };
 
-  Model.prototype.update = function(data, silent) {
+  RelationalModel.prototype.update = function(data, silent) {
     var changed, property, value;
     if (silent == null) {
       silent = false;
@@ -209,11 +212,11 @@ Model = (function() {
       this[property] = value;
     }
     if (!silent && changed) {
-      return this.pushEvent(Model.UPDATED);
+      return this.pushEvent(RelationalModel.UPDATED);
     }
   };
 
-  Model.prototype.hasRelationalChanges = function(data) {
+  RelationalModel.prototype.hasRelationalChanges = function(data) {
     var changed, property, value;
     for (property in data) {
       value = data[property];
@@ -231,7 +234,7 @@ Model = (function() {
     return false;
   };
 
-  Model.prototype.pushEvent = function(type) {
+  RelationalModel.prototype.pushEvent = function(type) {
     var _ref;
     return (_ref = this.eventStream) != null ? _ref.push({
       event: type,
@@ -241,7 +244,7 @@ Model = (function() {
     }) : void 0;
   };
 
-  Model.initialize = function(name) {
+  RelationalModel.initialize = function(name) {
     if (name == null) {
       name = this.name;
     }
@@ -254,11 +257,11 @@ Model = (function() {
     }
   };
 
-  Model.generateKeyFromModelName = function(modelName) {
+  RelationalModel.generateKeyFromModelName = function(modelName) {
     return "" + (modelName.charAt(0).toLowerCase()) + (modelName.slice(1)) + "ID";
   };
 
-  Model.hasMany = function(property, modelName, options) {
+  RelationalModel.hasMany = function(property, modelName, options) {
     var key;
     if (options == null) {
       options = {};
@@ -270,7 +273,7 @@ Model = (function() {
     return this.relationalIndex.add(property, modelName, RelationalIndex.MANY, key, false);
   };
 
-  Model.hasOne = function(property, modelName, options) {
+  RelationalModel.hasOne = function(property, modelName, options) {
     var key, keyInSelf, nameForKey;
     if (options == null) {
       options = {};
@@ -284,7 +287,7 @@ Model = (function() {
     return this.relationalIndex.add(property, modelName, RelationalIndex.ONE, key, keyInSelf);
   };
 
-  Model.belongsTo = function(property, modelName, options) {
+  RelationalModel.belongsTo = function(property, modelName, options) {
     var clonedOptions, key, value;
     if (options == null) {
       options = {};
@@ -300,7 +303,7 @@ Model = (function() {
     return this.hasOne(property, modelName, clonedOptions);
   };
 
-  Model.setAssociatedModel = function(object, property, value, type) {
+  RelationalModel.setAssociatedModel = function(object, property, value, type) {
     switch (type) {
       case RelationalIndex.ONE:
         return object[property] = value;
@@ -312,6 +315,6 @@ Model = (function() {
     }
   };
 
-  return Model;
+  return RelationalModel;
 
 })();
