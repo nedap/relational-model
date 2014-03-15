@@ -1,5 +1,5 @@
 
-class Model
+class RelationalModel
   @CREATED: 'created'
   @UPDATED: 'updated'
 
@@ -10,7 +10,7 @@ class Model
 
     @associatedModelStream = @eventStream.filter @filterModelStream
     @associatedModelStream.onValue @storeAssociatedModel
-    @pushEvent Model.CREATED unless @staticSelf.relationalIndex.isEmpty()
+    @pushEvent RelationalModel.CREATED unless @staticSelf.relationalIndex.isEmpty()
 
   filterModelStream: ( data ) =>
     for relation in @staticSelf.relationalIndex.find data.model
@@ -33,7 +33,7 @@ class Model
     changed = @hasRelationalChanges data
     @[property] = value for property, value of data
     if !silent && changed
-      @pushEvent Model.UPDATED
+      @pushEvent RelationalModel.UPDATED
 
   hasRelationalChanges: ( data ) =>
     for property, value of data
