@@ -3,13 +3,14 @@ class Model
   @CREATED: 'created'
   @UPDATED: 'updated'
 
-  constructor: ( @staticSelf, data, @eventStream ) ->
-    @update data, true
+  constructor: ( @staticSelf, @eventStream, data ) ->
+    @update data, true if data
 
-    if @eventStream
-      @associatedModelStream = @eventStream.filter @filterModelStream
-      @associatedModelStream.onValue @storeAssociatedModel
-      @pushEvent Model.CREATED unless @staticSelf.relationalIndex.isEmpty()
+    throw new Error "eventStream missing" unless @eventStream
+
+    @associatedModelStream = @eventStream.filter @filterModelStream
+    @associatedModelStream.onValue @storeAssociatedModel
+    @pushEvent Model.CREATED unless @staticSelf.relationalIndex.isEmpty()
 
   filterModelStream: ( data ) =>
     for relation in @staticSelf.relationalIndex.find data.model

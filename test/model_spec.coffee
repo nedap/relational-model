@@ -13,12 +13,25 @@ describe 'Model', ->
     class @SubClass extends Model
       @initialize()
       constructor: ( data, stream ) ->
-        super SubClass, data, stream
+        super SubClass, stream, data
 
     @data = { id: @id, childID: '33', someProperty: 'what' }
     @subject = new @SubClass( @data, @fakeEventStream )
 
 
+
+  describe "its constructor parameters", ->
+    beforeEach ->
+      class @SomeClass extends Model
+        @initialize()
+        constructor: ( eventStream, data ) ->
+          super SomeClass, eventStream, data
+
+    it "constructor its eventStream-parameter is required", ->
+      expect( => new @SomeClass( null )).toThrow()
+
+    it "constructor its data-parameter is optional", ->
+      expect( => new @SomeClass( @fakeEventStream )).not.toThrow()
 
   it "extends data", ->
     expect( @subject.id ).toEqual @data.id
@@ -74,7 +87,7 @@ describe 'Model', ->
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
       OtherClass.initialize()
-      obj = new OtherClass( OtherClass, @data, @fakeEventStream )
+      obj = new OtherClass( OtherClass, @fakeEventStream, @data )
       expect( obj.pushEvent ).not.toHaveBeenCalled()
 
     it "updates", ->
