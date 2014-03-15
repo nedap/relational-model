@@ -4,7 +4,7 @@ class Model
   @UPDATED: 'updated'
 
   constructor: ( @staticSelf, @eventStream, data ) ->
-    @update data, true
+    @update data, true if data
 
     if @eventStream
       @associatedModelStream = @eventStream.filter @filterModelStream

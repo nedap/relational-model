@@ -25,6 +25,13 @@ describe 'Model', ->
     expect( @subject.childID ).toEqual @data.childID
     expect( @subject.someProperty ).toEqual @data.someProperty
 
+  it "constructor its data-parameter is optional", ->
+    class SomeClass extends Model
+      @initialize()
+      constructor: ( eventStream ) -> super SomeClass, eventStream
+
+    expect( => new SomeClass( @fakeEventStream )).not.toThrow()
+
   it "knows if updates involve relational changes", ->
     @SubClass.hasOne 'child', 'Child'
     expect( @subject.hasRelationalChanges someProperty: 'something else' ).toEqual false
