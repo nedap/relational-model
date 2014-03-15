@@ -20,17 +20,23 @@ describe 'Model', ->
 
 
 
+  describe "its constructor parameters", ->
+    beforeEach ->
+      class @SomeClass extends Model
+        @initialize()
+        constructor: ( eventStream, data ) ->
+          super SomeClass, eventStream, data
+
+    it "constructor its eventStream-parameter is required", ->
+      expect( => new @SomeClass( null )).toThrow()
+
+    it "constructor its data-parameter is optional", ->
+      expect( => new @SomeClass( @fakeEventStream )).not.toThrow()
+
   it "extends data", ->
     expect( @subject.id ).toEqual @data.id
     expect( @subject.childID ).toEqual @data.childID
     expect( @subject.someProperty ).toEqual @data.someProperty
-
-  it "constructor its data-parameter is optional", ->
-    class SomeClass extends Model
-      @initialize()
-      constructor: ( eventStream ) -> super SomeClass, eventStream
-
-    expect( => new SomeClass( @fakeEventStream )).not.toThrow()
 
   it "knows if updates involve relational changes", ->
     @SubClass.hasOne 'child', 'Child'
