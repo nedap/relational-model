@@ -4,14 +4,14 @@ relational-model
 # Example
 
 ```coffeescript
-class Person extends Model
+class Person extends RelationaModel
   @initialize()
   @hasMany 'messages', 'Message'
   
   constructor: ->
     super Person
 
-class Message extends Model
+class Message extends RelationaModel
   @initialize()
   @belongsTo 'person', 'Person'
   
@@ -21,13 +21,13 @@ class Message extends Model
 
 # API
 
-Extending the Model class in CoffeeScript will add the following static methods to your subclass:
+Extending the RelationaModel class in CoffeeScript will add the following static methods to your subclass:
 
 ## initialize
 
 `initialize()`
 
-Initializes your class with it's own relational index. Make a habit of calling this for every Model-subclass. If you forget to call this method for subclasses of classes with associations, the subclasses its associations will be made on its superclass. *tl;dr*: unexpectedbehaviorocalypse.
+Initializes your class with it's own relational index. Make a habit of calling this for every RelationaModel-subclass. If you forget to call this method for subclasses of classes with associations, the subclasses its associations will be made on its superclass. *tl;dr*: unexpectedbehaviorocalypse.
 
 ## hasOne()
 `hasOne( property, modelName, options={} )`
