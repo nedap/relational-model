@@ -9,5 +9,8 @@
     "type": "git",
     "url": "git://github.com/nedap/relational-model.git"
   },
-  "main": "dist/relational-model.js"
+  "main": "dist/relational-model.js",
+  "dependencies": {
+    "bacon": "https://github.com/baconjs/bacon.js.git"
+  }
 }

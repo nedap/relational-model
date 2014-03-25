@@ -1,22 +1,45 @@
 relational-model
 ===========
 
+Allows for one-to-one and one-to-many relations to automatically be established upon instantiation of your models.
+
+The only dependency of this library is [Bacon.js](github.com/baconjs/bacon.js). A `Bacon.Bus` is used to pass created/updated/destroyed notifications between related models.
+
 # Example
 
 ```coffeescript
-class Person extends RelationaModel
+
+class Person extends RelationalModel
   @initialize()
   @hasMany 'messages', 'Message'
-  
-  constructor: ->
-    super Person
 
-class Message extends RelationaModel
+  constructor: ( @id, notifications ) ->
+    super Person, notifications
+
+class Message extends RelationalModel
   @initialize()
   @belongsTo 'person', 'Person'
-  
-  constructor: ->
-    super Message
+
+  constructor: ( @id, @personID, notifications ) ->
+    super Message, notifications
+
+bus = new Bacon.Bus()
+
+ruben = new Person( 'x', bus )
+message1 = new Message( 'a', 'x', bus )
+message2 = new Message( 'b', 'x', bus )
+
+ruben.messages # returns { a: message1, b: message2 }
+message1.person # returns ruben
+message2.person # returns ruben
+```
+
+# Install
+
+Using [Bower](http://bower.io):
+
+```
+bower install relational-model
 ```
 
 # API
