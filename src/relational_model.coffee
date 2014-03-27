@@ -3,7 +3,7 @@ class RelationalModel
   @CREATED: 'created'
   @UPDATED: 'updated'
 
-  constructor: ( @staticSelf, @eventStream, data ) ->
+  constructor: ( data, @staticSelf, @eventStream ) ->
     @update data, true if data
 
     throw new Error "eventStream missing" unless @eventStream

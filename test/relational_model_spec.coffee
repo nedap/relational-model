@@ -13,7 +13,7 @@ describe 'RelationalModel', ->
     class @SubClass extends RelationalModel
       @initialize()
       constructor: ( data, stream ) ->
-        super SubClass, stream, data
+        super data, SubClass, stream
 
     @data = { id: @id, childID: '33', someProperty: 'what' }
     @subject = new @SubClass( @data, @fakeEventStream )
@@ -22,19 +22,16 @@ describe 'RelationalModel', ->
     beforeEach ->
       class @SomeClass extends RelationalModel
         @initialize()
-        constructor: ( eventStream, data ) ->
-          super SomeClass, eventStream, data
+        constructor: ( data={}, eventStream ) ->
+          super data, SomeClass, eventStream
 
     it "constructor its eventStream-parameter is required", ->
       expect( => new @SomeClass( null )).toThrow()
 
-    it "constructor its data-parameter is optional", ->
-      expect( => new @SomeClass( @fakeEventStream )).not.toThrow()
-
     it 'defines its model properties', ->
       @SomeClass.hasOne 'child1', 'Child'
       @SomeClass.hasOne 'child2', 'Child'
-      instance = new @SomeClass( @fakeEventStream )
+      instance = new @SomeClass( {}, @fakeEventStream )
       expect( instance.child1 ).toBeDefined()
       expect( instance.child2 ).toBeDefined()
 
@@ -92,7 +89,7 @@ describe 'RelationalModel', ->
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
       OtherClass.initialize()
-      obj = new OtherClass( OtherClass, @fakeEventStream, @data )
+      obj = new OtherClass( @data, OtherClass, @fakeEventStream )
       expect( obj.pushEvent ).not.toHaveBeenCalled()
 
     it "updates", ->
