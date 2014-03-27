@@ -136,7 +136,7 @@ RelationalModel = (function() {
 
   RelationalModel.UPDATED = 'updated';
 
-  function RelationalModel(staticSelf, eventStream, data) {
+  function RelationalModel(data, staticSelf, eventStream) {
     this.staticSelf = staticSelf;
     this.eventStream = eventStream;
     this.pushEvent = __bind(this.pushEvent, this);
