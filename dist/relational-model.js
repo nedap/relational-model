@@ -11,7 +11,6 @@ RelationalIndex = (function() {
     this.all = __bind(this.all, this);
     this.find = __bind(this.find, this);
     this.has = __bind(this.has, this);
-    this.relationNames = __bind(this.relationNames, this);
     this.add = __bind(this.add, this);
     this.clone = __bind(this.clone, this);
     var model, rel;
@@ -41,17 +40,6 @@ RelationalIndex = (function() {
       key: key,
       keyInSelf: keyInSelf
     });
-  };
-
-  RelationalIndex.prototype.relationNames = function() {
-    var rel, _i, _len, _ref, _results;
-    _ref = this.all();
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      rel = _ref[_i];
-      _results.push(rel.property);
-    }
-    return _results;
   };
 
   RelationalIndex.prototype.has = function(options) {
@@ -189,12 +177,12 @@ RelationalModel = (function() {
   };
 
   RelationalModel.prototype.defineRelationProperties = function() {
-    var relation, _i, _len, _ref, _results;
-    _ref = this.staticSelf.relationalIndex.relationNames();
+    var relation, _i, _len, _name, _ref, _results;
+    _ref = this.staticSelf.relationalIndex.all();
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       relation = _ref[_i];
-      _results.push(this[relation] || (this[relation] = {}));
+      _results.push(this[_name = relation.property] || (this[_name] = {}));
     }
     return _results;
   };
