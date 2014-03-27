@@ -8,6 +8,7 @@ class RelationalModel
 
     throw new Error "eventStream missing" unless @eventStream
 
+    @defineRelationProperties()
     @associatedModelStream = @eventStream.filter @filterModelStream
     @associatedModelStream.onValue @storeAssociatedModel
     @pushEvent RelationalModel.CREATED unless @staticSelf.relationalIndex.isEmpty()
@@ -19,6 +20,10 @@ class RelationalModel
       else
         return true if data.object[ relation.key ] == @id
     return false
+
+  defineRelationProperties: ->
+    for relation in @staticSelf.relationalIndex.all()
+      @[relation.property] ||= {}
 
   storeAssociatedModel: ( data ) =>
     relations = @staticSelf.relationalIndex.find data.model

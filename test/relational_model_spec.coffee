@@ -18,9 +18,7 @@ describe 'RelationalModel', ->
     @data = { id: @id, childID: '33', someProperty: 'what' }
     @subject = new @SubClass( @data, @fakeEventStream )
 
-
-
-  describe "its constructor parameters", ->
+  describe "its constructor", ->
     beforeEach ->
       class @SomeClass extends RelationalModel
         @initialize()
@@ -32,6 +30,13 @@ describe 'RelationalModel', ->
 
     it "constructor its data-parameter is optional", ->
       expect( => new @SomeClass( @fakeEventStream )).not.toThrow()
+
+    it 'defines its model properties', ->
+      @SomeClass.hasOne 'child1', 'Child'
+      @SomeClass.hasOne 'child2', 'Child'
+      instance = new @SomeClass( @fakeEventStream )
+      expect( instance.child1 ).toBeDefined()
+      expect( instance.child2 ).toBeDefined()
 
   it "extends data", ->
     expect( @subject.id ).toEqual @data.id
