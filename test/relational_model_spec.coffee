@@ -25,10 +25,10 @@ describe 'RelationalModel', ->
         constructor: ( data={}, eventStream ) ->
           super data, SomeClass, eventStream
 
-    it "constructor its eventStream-parameter is required", ->
-      expect( => new @SomeClass( null )).toThrow()
+    it "its eventStream-parameter is required", ->
+      expect( => new @SomeClass( {}, null )).toThrow()
 
-    it 'defines its model properties', ->
+    it "defines its model properties", ->
       @SomeClass.hasOne 'child1', 'Child'
       @SomeClass.hasOne 'child2', 'Child'
       instance = new @SomeClass( {}, @fakeEventStream )
