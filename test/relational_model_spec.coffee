@@ -77,20 +77,18 @@ describe 'RelationalModel', ->
       spyOn @subject, 'pushEvent'
 
     it "notifies on creation", ->
-      @data.pushEvent = ( type ) ->
-      spyOn @data, 'pushEvent'
-      obj = new @SubClass( @data, @fakeEventStream )
-      expect( obj.pushEvent ).toHaveBeenCalledWith RelationalModel.CREATED
+      spyOn @fakeEventStream, 'push'
+      new @SubClass( @data, @fakeEventStream )
+      expect( @fakeEventStream.push ).toHaveBeenCalledWith jasmine.objectContaining event: RelationalModel.CREATED
 
     it "doesn't notify on creation without any relations", ->
       class OtherClass extends RelationalModel
+        @initialize()
         constructor: -> super
 
-      @data.pushEvent = ( type ) ->
-      spyOn @data, 'pushEvent'
-      OtherClass.initialize()
-      obj = new OtherClass( @data, OtherClass, @fakeEventStream )
-      expect( obj.pushEvent ).not.toHaveBeenCalled()
+      spyOn @fakeEventStream, 'push'
+      new OtherClass( @data, OtherClass, @fakeEventStream )
+      expect( @fakeEventStream.push ).not.toHaveBeenCalled()
 
     it "updates", ->
       @subject.update someProperty: 'yeah'
