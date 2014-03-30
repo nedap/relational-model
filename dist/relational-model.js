@@ -214,7 +214,7 @@ RelationalModel = (function() {
   };
 
   RelationalModel.prototype.update = function(data, silent) {
-    var changed, property, value;
+    var changed, property, relation, value, _i, _len, _ref;
     if (silent == null) {
       silent = false;
     }
@@ -222,6 +222,16 @@ RelationalModel = (function() {
     for (property in data) {
       value = data[property];
       this[property] = value;
+    }
+    _ref = this.staticSelf.relationalIndex.all();
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      relation = _ref[_i];
+      for (property in data) {
+        value = data[property];
+        if (relation.property === property) {
+          this[relation.key] = value.id;
+        }
+      }
     }
     if (!silent && changed) {
       return this.pushEvent(RelationalModel.UPDATED);

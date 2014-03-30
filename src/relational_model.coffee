@@ -37,6 +37,11 @@ class RelationalModel
   update: ( data, silent=false ) =>
     changed = @hasRelationalChanges data
     @[property] = value for property, value of data
+    # if instead of the key, the model is given, assign the key
+    for relation in @staticSelf.relationalIndex.all()
+      for property, value of data
+        if relation.property == property
+          @[relation.key] = value.id
     if !silent && changed
       @pushEvent RelationalModel.UPDATED
 

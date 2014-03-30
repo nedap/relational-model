@@ -1,14 +1,16 @@
 #= require spec_helper
 
 describe 'RelationalModel', ->
+  fakeEventStream = null
 
   beforeEach ->
     @id = 'abc123'
 
-    @fakeEventStream = {}
-    @fakeEventStream.push = ->
-    @fakeEventStream.onValue = ->
-    @fakeEventStream.filter = => @fakeEventStream
+    fakeEventStream = {}
+    fakeEventStream.onValueFns = []
+    fakeEventStream.onValue = (fn)-> fakeEventStream.onValueFns.push fn
+    fakeEventStream.push = (data)-> fn(data) for fn in fakeEventStream.onValueFns
+    fakeEventStream.filter = => fakeEventStream
 
     class @SubClass extends RelationalModel
       @initialize()
@@ -16,7 +18,7 @@ describe 'RelationalModel', ->
         super data, SubClass, stream
 
     @data = { id: @id, childID: '33', someProperty: 'what' }
-    @subject = new @SubClass( @data, @fakeEventStream )
+    @subject = new @SubClass( @data, fakeEventStream )
 
   describe "its constructor", ->
     beforeEach ->
@@ -31,7 +33,7 @@ describe 'RelationalModel', ->
     it "defines its model properties", ->
       @SomeClass.hasOne 'child1', 'Child'
       @SomeClass.hasOne 'child2', 'Child'
-      instance = new @SomeClass( {}, @fakeEventStream )
+      instance = new @SomeClass( {}, fakeEventStream )
       expect( instance.child1 ).toBeDefined()
       expect( instance.child2 ).toBeDefined()
 
@@ -47,10 +49,10 @@ describe 'RelationalModel', ->
     expect( @subject.hasRelationalChanges childID: '77' ).toEqual true
 
   it "pushes events", ->
-    spyOn @fakeEventStream, 'push'
+    spyOn fakeEventStream, 'push'
     type = 'something'
     @subject.pushEvent type
-    expect( @fakeEventStream.push ).toHaveBeenCalledWith { event: type, model: @SubClass.name, id: @subject.id, object: @subject }
+    expect( fakeEventStream.push ).toHaveBeenCalledWith { event: type, model: @SubClass.name, id: @subject.id, object: @subject }
 
   it "filters other models", ->
     @SubClass.hasMany 'children', 'Child', key: 'someID'
@@ -59,15 +61,15 @@ describe 'RelationalModel', ->
     expect( @subject.filterModelStream( model: 'Other', object: { someID: @id })).toEqual false
 
   it "its model-stream is filtered", ->
-    spyOn( @fakeEventStream, 'filter' ).and.callThrough()
-    obj = new @SubClass( id: @id, @fakeEventStream )
-    expect( @fakeEventStream.filter ).toHaveBeenCalledWith obj.filterModelStream
+    spyOn( fakeEventStream, 'filter' ).and.callThrough()
+    obj = new @SubClass( id: @id, fakeEventStream )
+    expect( fakeEventStream.filter ).toHaveBeenCalledWith obj.filterModelStream
 
   it "watches model-stream for newly created models", ->
-    spyOn @fakeEventStream, 'onValue'
-    expect( @fakeEventStream.onValue ).not.toHaveBeenCalled()
-    obj = new @SubClass( id: @id, @fakeEventStream )
-    expect( @fakeEventStream.onValue ).toHaveBeenCalledWith obj.storeAssociatedModel
+    spyOn fakeEventStream, 'onValue'
+    expect( fakeEventStream.onValue ).not.toHaveBeenCalled()
+    obj = new @SubClass( id: @id, fakeEventStream )
+    expect( fakeEventStream.onValue ).toHaveBeenCalledWith obj.storeAssociatedModel
 
 
 
@@ -79,7 +81,7 @@ describe 'RelationalModel', ->
     it "notifies on creation", ->
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
-      obj = new @SubClass( @data, @fakeEventStream )
+      obj = new @SubClass( @data, fakeEventStream )
       expect( obj.pushEvent ).toHaveBeenCalledWith RelationalModel.CREATED
 
     it "doesn't notify on creation without any relations", ->
@@ -89,7 +91,7 @@ describe 'RelationalModel', ->
       @data.pushEvent = ( type ) ->
       spyOn @data, 'pushEvent'
       OtherClass.initialize()
-      obj = new OtherClass( @data, OtherClass, @fakeEventStream )
+      obj = new OtherClass( @data, OtherClass, fakeEventStream )
       expect( obj.pushEvent ).not.toHaveBeenCalled()
 
     it "updates", ->
@@ -247,3 +249,32 @@ describe 'RelationalModel', ->
 
     it "throws an error for unknown relation-types", ->
       expect( -> RelationalModel.setAssociatedModel {}, 'prop', 'value', 'bullshit' ).toThrow()
+
+
+  describe "integration", ->
+    beforeEach ->
+      class @Person extends RelationalModel
+        @initialize()
+        @hasMany 'messages', 'Message', key: 'personId'
+        constructor: ( data={}, eventStream ) ->
+          super data, Person, eventStream
+
+      class @Message extends RelationalModel
+        @initialize()
+        @belongsTo 'person', 'Person', key: 'personId'
+        constructor: ( data={}, eventStream ) ->
+          super data, Message, eventStream
+
+      @henk = new @Person({id: 15, name: 'Henk'}, fakeEventStream)
+
+    it "can assign relation by object", ->
+      message = new @Message({id: 20, body:"I liked the cake, it was real", person: @henk}, fakeEventStream)
+      expect(@henk.messages[message.id]).toBe message
+      expect(message.person).toBe @henk
+      expect(message.personId).toEqual @henk.id
+
+    it "can assign relation by id", ->
+      message = new @Message({id: 20, body:"I liked the cake, it was real", personId: @henk.id}, fakeEventStream)
+      expect(@henk.messages[message.id]).toBe message
+      expect(message.personId).toEqual @henk.id
+      expect(message.person).toBe @henk
