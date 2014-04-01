@@ -91,7 +91,6 @@ class RelationalModel
       when RelationalIndex.ONE
         object[property] = value
       when RelationalIndex.MANY
-        object[property] ||= {}
         object[property][value.id] = value
       else
         throw new Error "Uknown relation-type"
