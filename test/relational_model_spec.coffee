@@ -30,12 +30,14 @@ describe 'RelationalModel', ->
     it "its eventStream-parameter is required", ->
       expect( => new @SomeClass( {}, null )).toThrow()
 
-    it "defines its model properties", ->
-      @SomeClass.hasOne 'child1', 'Child'
-      @SomeClass.hasOne 'child2', 'Child'
+    it "defines properties for one-to-many relations", ->
+      @SomeClass.hasMany 'children', 'Child'
+      @SomeClass.hasMany 'parents', 'Parent'
+      @SomeClass.hasOne 'lover', 'Person'
       instance = new @SomeClass( {}, fakeEventStream )
-      expect( instance.child1 ).toBeDefined()
-      expect( instance.child2 ).toBeDefined()
+      expect( instance.children ).toBeDefined()
+      expect( instance.parents ).toBeDefined()
+      expect( instance.lover ).toBeUndefined()
 
   it "extends data", ->
     expect( @subject.id ).toEqual @data.id
@@ -249,6 +251,36 @@ describe 'RelationalModel', ->
 
     it "throws an error for unknown relation-types", ->
       expect( -> RelationalModel.setAssociatedModel {}, 'prop', 'value', 'bullshit' ).toThrow()
+
+
+
+  describe "its initializeAssociation() method", ->
+    it "sets nothing for one-to-one relations", ->
+      property = 'prop'
+      obj = {}
+
+      RelationalModel.initializeAssociation obj, property, RelationalIndex.ONE
+      expect( obj[property] ).toBeUndefined()
+
+    it "sets nothing for already defined relations", ->
+      property = 'prop'
+      value = 'value'
+      obj = {}
+      obj[property] = value
+
+      RelationalModel.initializeAssociation obj, property, RelationalIndex.MANY
+      expect( obj[property] ).toEqual value
+
+    it "sets property for one-to-many relations", ->
+      property = 'prop'
+      obj = {}
+
+      RelationalModel.initializeAssociation obj, property, RelationalIndex.MANY
+      expect( obj[property] ).toBeDefined()
+
+    it "throws an error for unknown relation-types", ->
+      expect( -> RelationalModel.initializeAssociation {}, 'prop', 'bullshit' ).toThrow()
+
 
 
   describe "integration", ->

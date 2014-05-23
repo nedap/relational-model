@@ -8,10 +8,16 @@ class RelationalModel
 
     throw new Error "eventStream missing" unless @eventStream
 
-    @defineRelationProperties()
     @associatedModelStream = @eventStream.filter @filterModelStream
     @associatedModelStream.onValue @storeAssociatedModel
-    @pushEvent RelationalModel.CREATED unless @staticSelf.relationalIndex.isEmpty()
+
+    unless @staticSelf.relationalIndex.isEmpty()
+      @initializeRelationalProperties()
+      @pushEvent RelationalModel.CREATED
+
+  initializeRelationalProperties: ->
+    for relation in @staticSelf.relationalIndex.all()
+      @staticSelf.initializeAssociation this, relation.property, relation.type
 
   filterModelStream: ( data ) =>
     for relation in @staticSelf.relationalIndex.find data.model
@@ -20,10 +26,6 @@ class RelationalModel
       else
         return true if data.object[ relation.key ] == @id
     return false
-
-  defineRelationProperties: ->
-    for relation in @staticSelf.relationalIndex.all()
-      @[relation.property] ||= {}
 
   storeAssociatedModel: ( data ) =>
     relations = @staticSelf.relationalIndex.find data.model
@@ -85,11 +87,20 @@ class RelationalModel
     @hasOne property, modelName, clonedOptions
 
   @setAssociatedModel: ( object, property, value, type ) =>
+    @initializeAssociation object, property, type
     switch type
       when RelationalIndex.ONE
         object[property] = value
       when RelationalIndex.MANY
-        object[property] ||= {}
         object[property][value.id] = value
       else
-        throw "Uknown relation-type"
+        throw new Error "Uknown relation-type"
+
+  @initializeAssociation: ( object, property, type ) =>
+    switch type
+      when RelationalIndex.ONE
+        break
+      when RelationalIndex.MANY
+        object[property] ||= {}
+      else
+        throw new Error "Uknown relation-type"
