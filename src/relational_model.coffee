@@ -87,6 +87,7 @@ class RelationalModel
     @hasOne property, modelName, clonedOptions
 
   @setAssociatedModel: ( object, property, value, type ) =>
+    @initializeAssociation object, property, type
     switch type
       when RelationalIndex.ONE
         object[property] = value
