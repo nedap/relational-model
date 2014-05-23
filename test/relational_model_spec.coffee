@@ -34,7 +34,7 @@ describe 'RelationalModel', ->
       @SomeClass.hasMany 'children', 'Child'
       @SomeClass.hasMany 'parents', 'Parent'
       @SomeClass.hasOne 'lover', 'Person'
-      instance = new @SomeClass( {}, @fakeEventStream )
+      instance = new @SomeClass( {}, fakeEventStream )
       expect( instance.children ).toBeDefined()
       expect( instance.parents ).toBeDefined()
       expect( instance.lover ).toBeUndefined()
@@ -252,6 +252,8 @@ describe 'RelationalModel', ->
     it "throws an error for unknown relation-types", ->
       expect( -> RelationalModel.setAssociatedModel {}, 'prop', 'value', 'bullshit' ).toThrow()
 
+
+
   describe "its initializeAssociation() method", ->
     it "sets nothing for one-to-one relations", ->
       property = 'prop'
@@ -278,6 +280,8 @@ describe 'RelationalModel', ->
 
     it "throws an error for unknown relation-types", ->
       expect( -> RelationalModel.initializeAssociation {}, 'prop', 'bullshit' ).toThrow()
+
+
 
   describe "integration", ->
     beforeEach ->
